@@ -1,56 +1,40 @@
 
+import component.Circle;
 import component.ComponentConst;
+import component.ComponentTableModel;
+import component.Components;
+import listener.ComponentChangeListener;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.NumberFormat;
 
-public class EditorWindow extends JFrame {
+public class EditorWindow extends JFrame implements ComponentChangeListener {
 
-    private final MenuListener menuListener = new MenuListener();
     private final DrawingCanvas drawingCanvas;
+
+    private ComponentTableModel componentTableModel;
+
+    private final JTable tableComponents;
+
 
     public EditorWindow(int w, int h) throws HeadlessException{
         setSize(w, h);
         setTitle("My Perfect Vector Editor");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.drawingCanvas = new DrawingCanvas(w, h);
+        this.drawingCanvas = new DrawingCanvas(w, h, this);
 
         setVisible(true);
 
         setLayout(new BorderLayout());
 
         add(drawingCanvas, BorderLayout.CENTER);
-
-        JMenuBar menuBar = new JMenuBar();
-
-        setJMenuBar(menuBar);
-
-        JMenu fileMenu  = new JMenu("File");
-
-        JMenuItem fileFirst = new JMenuItem("First item");
-        fileFirst.setActionCommand("FIRST_ITEM");
-        fileFirst.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
-        fileFirst.addActionListener(menuListener);
-
-
-        JMenuItem fileSecond = new JMenuItem("Second item");
-        fileSecond.setActionCommand("SECOND_ITEM");
-        fileSecond.addActionListener(menuListener);
-
-
-        fileMenu.add(fileFirst);
-        fileMenu.add(fileSecond);
-
-
-        JMenu helpMenu = new JMenu("Help");
-        helpMenu.setActionCommand("HELP");
-        helpMenu.addActionListener(menuListener);
-
-        menuBar.add(fileMenu);
-        menuBar.add(helpMenu);
 
 
         JToolBar toolBar = new JToolBar(JToolBar.VERTICAL);
@@ -108,27 +92,32 @@ public class EditorWindow extends JFrame {
         toolBar.add(panObjects);
         toolBar.add(panRgb);
 
-    }
 
+        Components c = Components.getINSTANCE();
+        c.add(new Circle());
 
-    class MenuListener implements ActionListener{
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            switch (e.getActionCommand()){
-                case "FIRST_ITEM" : {
-                    System.out.println("FIRST");
-                    break;
-                }
-                case "SECOND_ITEM" : {
-                    System.out.println("SECOND");
-                    break;
-                }
+        componentTableModel = new ComponentTableModel();
+
+        tableComponents = new JTable(componentTableModel);
+        tableComponents.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tableComponents.setPreferredSize(new Dimension(150, 100));
+
+        tableComponents.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                drawingCanvas.updateComponent(tableComponents.getSelectedRow());
             }
-            System.out.println(e.getActionCommand());
-        }
+        });
+
+
+        JScrollPane scrollTable = new JScrollPane(tableComponents);
+
+
+        toolBar.add(scrollTable);
     }
 
-
-
-
+    @Override
+    public void onComponentsChange() {
+        tableComponents.repaint();
+    }
 }

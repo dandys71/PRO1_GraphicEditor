@@ -9,6 +9,12 @@ public class Primitive {
 
     private int height;
 
+    private String name;
+
+    private double rotation;
+
+    private ComponentConst.ComponentType type;
+
     public Primitive() {
     }
 
@@ -49,5 +55,29 @@ public class Primitive {
 
     public void setHeight(int height) {
         this.height = height;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public ComponentConst.ComponentType getType() {
+        return type;
+    }
+
+    protected void setType(ComponentConst.ComponentType type) {
+        this.type = type;
+    }
+
+    public double getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
     }
 }

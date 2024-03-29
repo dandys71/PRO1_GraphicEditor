@@ -2,11 +2,15 @@ package component;
 
 public class Circle extends Primitive{
 
-    public Circle(){
 
+
+    public Circle(){
+        setName("Circle"); //todo cislovani
+        setType(ComponentConst.ComponentType.CIRCLE);
     }
 
-    public Circle(int x, int y, int radius){
+    public Circle(int x, int y, int radius) {
+        this();
         setX(x);
         setY(y);
         setRadius(radius); //this.radius = radius;
@@ -32,6 +36,4 @@ public class Circle extends Primitive{
         super.setWidth(height);
         super.setHeight(height);
     }
-
-
 }
