@@ -1,7 +1,6 @@
 import component.Circle;
-import component.ComponentConst;
-import component.Components;
-import component.Primitive;
+import component.ComponentList;
+import component.BaseComponent;
 import listener.ComponentChangeListener;
 
 import javax.swing.*;
@@ -14,26 +13,24 @@ public class DrawingCanvas extends JComponent {
     private final int width;
     private final int height;
 
-    private boolean isEditing = false;
+    private boolean bCreating = false;
 
     private final ComponentChangeListener componentChangeListener;
 
-    private final Components components;
+    private final ComponentList componentList;
 
-    private Primitive editedPrimitive;
-
-    private ComponentConst.ComponentType type = ComponentConst.ComponentType.NONE;
 
     private int index = -1;
 
     public DrawingCanvas(int w, int h, ComponentChangeListener componentChangeListener) {
         this.width = w;
         this.height = h;
+        setSize(width, height);
         this.componentChangeListener = componentChangeListener;
 
         setDoubleBuffered(true);
 
-        components = Components.getINSTANCE();
+        componentList = ComponentList.getINSTANCE();
 
         MouseListener myMouseListener = new MouseListener();
         addMouseMotionListener(myMouseListener);
@@ -49,45 +46,27 @@ public class DrawingCanvas extends JComponent {
 
         AffineTransform reset = g.getTransform();
 
-        for (int i = 0; i < components.getComponents().size(); i++) {
-            Primitive p = components.getComponents().get(i);
+        for (int i = 0; i < componentList.getComponents().size(); i++) {
+            BaseComponent p = componentList.getComponents().get(i);
 
-            if (p instanceof Circle) { //todo nefunguje protože upravuju lokální koupii edited primitiv nikoliv primitu v seznamu
+            if (p instanceof Circle) {
+                g.setColor(p.getColor());
                 g.translate(p.getX(), p.getY());
                 g.rotate(p.getRotation());
-                g.drawRect(-p.getWidth() / 2, -p.getHeight() / 2, p.getWidth(), p.getHeight());
+                g.fillRect( - p.getWidth() / 2, -p.getHeight() / 2, p.getWidth(), p.getHeight());
                 g.setTransform(reset);
             }
 
         }
 
-        if (type == ComponentConst.ComponentType.CIRCLE) {
-            g.drawRect(editedPrimitive.getX() - editedPrimitive.getWidth() / 2, editedPrimitive.getY() - editedPrimitive.getHeight() / 2, editedPrimitive.getWidth(), editedPrimitive.getHeight());
-        }
-
     }
 
-    private void clear() {
-        Graphics2D g = (Graphics2D) getGraphics();
-        g.clearRect(0, 0, width, height);
-    }
-
-
-    public void addComponent(ComponentConst.ComponentType type) {
-        this.type = type;
-    }
-
-    private void reset() {
-        //editedPrimitive = null;
-        type = ComponentConst.ComponentType.NONE;
-        isEditing = false;
-        this.index = -1;
+    public void addComponent(int index) {
+        this.bCreating = true;
+        this.index = index;
     }
 
     public void updateComponent(int index) {
-        editedPrimitive = components.getComponents().get(index);
-        type = editedPrimitive.getType();
-        isEditing = true;
         this.index = index;
     }
 
@@ -98,10 +77,6 @@ public class DrawingCanvas extends JComponent {
 
         private int startY = -1;
 
-        private int lastX = -1;
-
-        private int lastY = -1;
-
 
         @Override
         public void mouseMoved(MouseEvent e) {
@@ -111,35 +86,25 @@ public class DrawingCanvas extends JComponent {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            startX = e.getX();
-            startY = e.getY();
+            if (bCreating) {
+                startX = e.getX();
+                startY = e.getY();
+                BaseComponent p = componentList.getComponents().get(index);
 
-            lastX = e.getX();
-            lastY = e.getY();
+                if(p instanceof Circle){
+                    p.setX(startX);
+                    p.setY(startY);
 
-            if (type != ComponentConst.ComponentType.NONE) {
+                    componentChangeListener.updateTableRow();
 
-                switch (type) {
-                    case CIRCLE -> {
-                        editedPrimitive = new Circle();
-                        editedPrimitive.setX(startX);
-                        editedPrimitive.setY(startY);
-                    }
-                    case OVAL -> {
-                    }
                 }
             }
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (type == ComponentConst.ComponentType.CIRCLE && !isEditing) {
-                components.add(editedPrimitive);
-            }
             componentChangeListener.onComponentsChange();
-            reset();
-            startX = -1;
-            startY = -1;
+            bCreating = false;
         }
 
         @Override
@@ -147,36 +112,36 @@ public class DrawingCanvas extends JComponent {
             //euklidovská vzdálenost dvou bodů
             //vzdalenost = odmocina (x1 - x2)^2 + odmocnina (y1 - y2)^2
             if (SwingUtilities.isLeftMouseButton(e)) {
-                if (type != ComponentConst.ComponentType.NONE) {
-                    if (type == ComponentConst.ComponentType.CIRCLE) {
+                if (index != -1 && bCreating){
+                    BaseComponent p = componentList.getComponents().get(index);
+
+                    if (p instanceof Circle) {
 
                         int size = (int) Math.round(Math.sqrt(Math.pow(startX - e.getX(), 2) + Math.pow(startY - e.getY(), 2)));
 
-                        editedPrimitive.setWidth(size);
-                        editedPrimitive.setHeight(size);
-
-                        editedPrimitive.setX(startX);
-                        editedPrimitive.setY(startY);
+                        p.setWidth(size);
+                        p.setHeight(size);
                     }
                     repaint();
+                    componentChangeListener.onComponentsChange();
                 }
 
             }
 
             if (SwingUtilities.isRightMouseButton(e)) {
                 //rotation
+                if(index != -1) {
+                    BaseComponent p = componentList.getComponents().get(index);
 
-                int rectCenterX = components.getComponents().get(index).getX();
-                int rectCenterY = components.getComponents().get(index).getY();
-                double dx = e.getX() - rectCenterX;
-                double dy = e.getY() - rectCenterY;
-                double rotation = Math.atan2(dy, dx);
-                components.getComponents().get(index).setRotation(rotation);
-                System.out.println(components.getComponents().get(index).getRotation());
-
-                repaint();
+                    int rectCenterX = p.getX();
+                    int rectCenterY = p.getY();
+                    double dx = e.getX() - rectCenterX;
+                    double dy = e.getY() - rectCenterY;
+                    double rotation = Math.atan2(dy, dx);
+                    p.setRotation(rotation);
+                    repaint();
+                }
             }
-
 
         }
     }

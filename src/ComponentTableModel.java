@@ -1,15 +1,15 @@
-package component;
+import component.ComponentList;
 
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 
 public class ComponentTableModel extends AbstractTableModel {
 
-    private Components components;
+    private final ComponentList components;
 
-    public ComponentTableModel() {
-        components = Components.getINSTANCE();
+    private final String[] columnNames = {"Name", "Width"};
+
+    public ComponentTableModel(ComponentList components) {
+        this.components = components;
 
     }
 
@@ -20,30 +20,30 @@ public class ComponentTableModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return 2;
+        return columnNames.length;
     }
 
     @Override
     public String getColumnName(int columnIndex) {
-        switch (columnIndex){
-            case 0:{
-                return "Name";
-            }
-            case 1: {
-                return "Width";
-            }
-        }
-        return "";
+        return columnNames[columnIndex];
     }
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
+        switch (columnIndex){
+            case 0: {
+                return String.class;
+            }
+            case 1 : {
+                return Integer.class;
+            }
+        }
         return Object.class;
     }
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return false;
+        return columnIndex == 0;
     }
 
     @Override
@@ -61,16 +61,8 @@ public class ComponentTableModel extends AbstractTableModel {
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-
-    }
-
-    @Override
-    public void addTableModelListener(TableModelListener l) {
-
-    }
-
-    @Override
-    public void removeTableModelListener(TableModelListener l) {
-
+        if(columnIndex == 0) {
+            components.getComponents().get(rowIndex).setName((String) aValue);
+        }
     }
 }

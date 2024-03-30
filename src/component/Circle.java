@@ -1,12 +1,12 @@
 package component;
 
-public class Circle extends Primitive{
+public class Circle extends BaseComponent {
 
-
+    private static int circleCount = 1;
 
     public Circle(){
-        setName("Circle"); //todo cislovani
-        setType(ComponentConst.ComponentType.CIRCLE);
+        setName("Circle " + circleCount); //todo cislovani
+        circleCount++;
     }
 
     public Circle(int x, int y, int radius) {

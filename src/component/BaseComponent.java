@@ -1,6 +1,8 @@
 package component;
 
-public class Primitive {
+import java.awt.*;
+
+public abstract class BaseComponent {
     private int x;
 
     private int y;
@@ -13,12 +15,12 @@ public class Primitive {
 
     private double rotation;
 
-    private ComponentConst.ComponentType type;
+    private Color color;
 
-    public Primitive() {
+    public BaseComponent() {
     }
 
-    public Primitive(int x, int y, int width, int height) {
+    public BaseComponent(int x, int y, int width, int height) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -65,19 +67,19 @@ public class Primitive {
         this.name = name;
     }
 
-    public ComponentConst.ComponentType getType() {
-        return type;
-    }
-
-    protected void setType(ComponentConst.ComponentType type) {
-        this.type = type;
-    }
-
     public double getRotation() {
         return rotation;
     }
 
     public void setRotation(double rotation) {
         this.rotation = rotation;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 }
