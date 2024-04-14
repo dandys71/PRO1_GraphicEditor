@@ -1,14 +1,15 @@
 
 import component.Circle;
-import component.ComponentList;
 import listener.ComponentChangeListener;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.text.NumberFormat;
 
 public class EditorWindow extends JFrame implements ComponentChangeListener {
@@ -23,6 +24,10 @@ public class EditorWindow extends JFrame implements ComponentChangeListener {
 
     private final int TOOLBAR_WIDTH = 200;
 
+    private final ProjectSaver projectSaver;
+
+    private final JLabel editingTime;
+
 
     public EditorWindow(int w, int h) throws HeadlessException{
         setSize(w, h);
@@ -30,6 +35,7 @@ public class EditorWindow extends JFrame implements ComponentChangeListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.drawingCanvas = new DrawingCanvas(w, h, this);
         this.componentList = ComponentList.getINSTANCE();
+        this.projectSaver = new ProjectSaver(componentList);
 
         setVisible(true);
 
@@ -42,6 +48,49 @@ public class EditorWindow extends JFrame implements ComponentChangeListener {
 
         add(drawingCanvas, BorderLayout.CENTER);
 
+        JMenuBar mainMenuBar = new JMenuBar();
+        add(mainMenuBar, BorderLayout.PAGE_START);
+
+        JMenu fileMenu = new JMenu("File");
+
+        mainMenuBar.add(fileMenu);
+
+        JMenuItem openProject = new JMenuItem("Open project");
+        openProject.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
+        openProject.addActionListener(click -> {
+
+            JFileChooser openChooser = new JFileChooser();
+            openChooser.setDialogTitle("Choose file to open");
+            openChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("JSON projects", "json");
+            openChooser.setFileFilter(filter);
+
+            int result = openChooser.showOpenDialog(this);
+            if(result == JFileChooser.APPROVE_OPTION){
+                String selectedFilePath = openChooser.getSelectedFile().getAbsolutePath();
+                System.out.println(selectedFilePath);
+                projectSaver.loadProject(selectedFilePath);
+                updateAll();
+            }
+        });
+
+        JMenuItem saveProject = new JMenuItem("Save project");
+        saveProject.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
+        saveProject.addActionListener(click -> {
+            JFileChooser saveChooser = new JFileChooser();
+            saveChooser.setDialogTitle("Specify a project to save");
+            int result = saveChooser.showSaveDialog(this);
+            if(result == JFileChooser.APPROVE_OPTION){
+                String saveLocation = saveChooser.getSelectedFile().getAbsolutePath();
+                projectSaver.saveProject(saveLocation + ".json");
+                System.out.println("Save: " + saveLocation + ".json");
+            }
+
+        });
+
+        fileMenu.add(openProject);
+        fileMenu.add(saveProject);
 
         JPanel panObjects = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panObjects.setMaximumSize(new Dimension(TOOLBAR_WIDTH, 35));
@@ -125,6 +174,9 @@ public class EditorWindow extends JFrame implements ComponentChangeListener {
                 drawingCanvas.addComponent(componentList.getComponents().size() - 1);
             }
         });
+
+        editingTime = new JLabel("00:00:00");
+        add(editingTime, BorderLayout.PAGE_END);
     }
 
     @Override
@@ -135,5 +187,22 @@ public class EditorWindow extends JFrame implements ComponentChangeListener {
     @Override
     public void updateTableRow() {
         tableComponents.changeSelection(componentTableModel.getRowCount()-1, 0, true, false);
+    }
+
+    public void updateAll(){
+        drawingCanvas.repaint();
+        onComponentsChange();
+        updateTableRow();
+    }
+
+    public void updateTime() {
+        componentList.addEditTime();
+        //10584
+        Long editTime = componentList.getEditTime();
+        int hours = (int) (editTime / 3600); //10584 / 3600 = 2,94 = 2
+        int minutes = (int)(editTime / 60); //10584 / 60 = 176,4 = 176 - (hours * 60) = 56
+        int seconds = (int)(editTime - (3600 * hours - 60 * minutes));
+
+        editingTime.setText(String.format("%02d", hours) + ":" + String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
     }
 }

@@ -1,7 +1,16 @@
 package component;
 
-import java.awt.*;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.awt.*;
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Circle.class, name = "circle"),
+})
 public abstract class BaseComponent {
     private int x;
 

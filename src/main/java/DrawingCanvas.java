@@ -1,5 +1,4 @@
 import component.Circle;
-import component.ComponentList;
 import component.BaseComponent;
 import listener.ComponentChangeListener;
 

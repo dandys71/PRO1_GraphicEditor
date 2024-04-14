@@ -1,4 +1,4 @@
-package component;
+import component.BaseComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,8 @@ public class ComponentList {
     private final ArrayList<BaseComponent> baseComponents;
 
     private static ComponentList INSTANCE;
+
+    private long editTime;
 
 
     public static ComponentList getINSTANCE() {
@@ -32,4 +34,25 @@ public class ComponentList {
         return baseComponents;
     }
 
+    public void setBaseComponents(List<BaseComponent> newBaseComponents){
+        this.baseComponents.clear();
+        this.baseComponents.addAll(newBaseComponents);
+    }
+
+    public static ComponentList loadInstance(ComponentList loadedComponentList){
+        INSTANCE = loadedComponentList;
+        return INSTANCE;
+    }
+
+    public long getEditTime() {
+        return editTime;
+    }
+
+    public void setEditTime(long editTime) {
+        this.editTime = editTime;
+    }
+
+    public void addEditTime() {
+        this.editTime += 1;
+    }
 }

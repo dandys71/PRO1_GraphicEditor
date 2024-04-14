@@ -1,5 +1,3 @@
-import component.ComponentList;
-
 import javax.swing.table.AbstractTableModel;
 
 public class ComponentTableModel extends AbstractTableModel {
