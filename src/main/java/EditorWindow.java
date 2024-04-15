@@ -197,12 +197,12 @@ public class EditorWindow extends JFrame implements ComponentChangeListener {
 
     public void updateTime() {
         componentList.addEditTime();
-        //10584
-        Long editTime = componentList.getEditTime();
-        int hours = (int) (editTime / 3600); //10584 / 3600 = 2,94 = 2
-        int minutes = (int)(editTime / 60); //10584 / 60 = 176,4 = 176 - (hours * 60) = 56
-        int seconds = (int)(editTime - (3600 * hours - 60 * minutes));
 
-        editingTime.setText(String.format("%02d", hours) + ":" + String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
+        long editTime = componentList.getEditTime();
+        int hours = (int) (editTime / 3600);
+        int minutes = (int)(editTime % 3600) / 60;
+        int seconds = (int)(editTime % 60);
+
+        editingTime.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
     }
 }
